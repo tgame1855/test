@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.email == "tgame1855@gmail.com" || 
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'student'];
+    }
+
+    function isValidAttendance(data) {
+      return data.keys().hasAll(['uid', 'date', 'session', 'status', 'timestamp']) &&
+             data.uid is string &&
+             data.date is string &&
+             data.session in ['morning', 'afternoon'] &&
+             data.status in ['present', 'absent'] &&
+             data.timestamp is string;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['senderId', 'text', 'timestamp', 'type']) &&
+             data.senderId is string &&
+             data.text is string &&
+             data.text.size() < 1000 &&
+             data.type in ['group', 'private'] &&
+             (!('participants' in data) || data.participants is list);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /attendance/{recordId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin() || (isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidAttendance(request.resource.data));
+      allow update, delete: if isAdmin();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && (
+        resource.data.type == 'group' || 
+        resource.data.senderId == request.auth.uid || 
+        resource.data.receiverId == request.auth.uid ||
+        (resource.data.keys().contains('participants') && request.auth.uid in resource.data.participants) ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid && isValidMessage(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

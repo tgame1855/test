@@ -1,0 +1,20 @@
+{
+  "name": "Lớp 12A12 Điểm Danh",
+  "short_name": "12A12",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2563EB",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/12a12/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/12a12/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

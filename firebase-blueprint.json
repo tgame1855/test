@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "student"] },
+        "studentId": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Daily attendance record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "studentName": { "type": "string" },
+        "date": { "type": "string", "description": "YYYY-MM-DD" },
+        "session": { "type": "string", "enum": ["morning", "afternoon"] },
+        "status": { "type": "string", "enum": ["present", "absent"] },
+        "reason": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "date", "session", "status", "timestamp"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Chat message",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "receiverId": { "type": "string", "description": "null for group chat" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["group", "private"] }
+      },
+      "required": ["senderId", "text", "timestamp", "type"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System notification or announcement",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["all", "individual"] },
+        "targetUid": { "type": "string" },
+        "senderId": { "type": "string" }
+      },
+      "required": ["title", "body", "timestamp", "type"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/attendance/{recordId}": {
+      "schema": "Attendance",
+      "description": "Attendance records"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Chat messages"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Announcements and alerts"
+    }
+  }
+}
